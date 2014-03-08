@@ -9,6 +9,8 @@ class Item(db.Model):
     name = TextField()
     max_count = IntegerField(null=True)
     target = FloatField(null=True)
+    uri = TextField(null=True)
+
     parent = ForeignKeyField('self', related_name='sub_items', null=True)
     
     def __unicode__(self):
