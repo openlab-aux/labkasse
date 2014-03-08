@@ -16,6 +16,10 @@ class Item(db.Model):
     def __unicode__(self):
         return self.name
 
+    @property
+    def sub_items(self):
+        return list(Item.select().where(Item.parent == self))
+
 class Donation(db.Model):
     value = FloatField()
     date = DateTimeField(default=datetime.now)
