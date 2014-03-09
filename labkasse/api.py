@@ -17,7 +17,8 @@ class ItemsResource(Resource):
                 'uri': i.uri,
                 'max_count': i.max_count,
                 'target': i.target,
-                'max_count': i.max_count
+                'max_count': i.max_count,
+                'donation_sum': i.donation_sum
             })
         return items
         
@@ -33,6 +34,7 @@ class SingleItemResource(Resource):
             'max_count': item.max_count,
             'target': item.target,
             'max_count': item.max_count,
+            'donation_sum': item.donation_sum,
             'sub_items': [ SingleItemResource._item_to_json(i) for i in 
                            list(item.sub_items) ]
         }
