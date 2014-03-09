@@ -19,6 +19,17 @@ class Item(db.Model):
     @property
     def sub_items(self):
         return list(Item.select().where(Item.parent == self))
+    
+    @property
+    def donation_sum(self):
+        sum = 0
+        for d in self.donations:
+            sum += d.value
+        for i in self.sub_items:
+            sum += i.donation_sum
+            
+        return sum
+            
 
 class Donation(db.Model):
     value = FloatField()
