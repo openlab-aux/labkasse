@@ -14,6 +14,9 @@ class ItemsResource(Resource):
             items.append({
                 'id': i.id,
                 'name': i.name,
+                'owner': i.owner,
+                'used_by': i.used_by,
+                'location': i.location,
                 'uri': i.uri,
                 'max_count': i.max_count,
                 'target': i.target,
@@ -30,6 +33,9 @@ class SingleItemResource(Resource):
         return {
             'id': item.id,
             'name': item.name,
+            'owner': i.owner,
+            'used_by': i.used_by,
+            'location': i.location,
             'uri': item.uri,
             'max_count': item.max_count,
             'target': item.target,

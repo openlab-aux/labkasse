@@ -10,6 +10,9 @@ class Item(db.Model):
     max_count = IntegerField(null=True)
     target = FloatField(null=True)
     uri = TextField(null=True)
+    owner = TextField(null=True)
+    used_by = TextField(null=True)
+    location = TextField(null=True)
 
     parent = ForeignKeyField('self', related_name='sub_items', null=True)
     
