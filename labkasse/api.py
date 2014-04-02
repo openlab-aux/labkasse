@@ -25,6 +25,30 @@ class ItemsResource(Resource):
             })
         return items
         
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('name', type=str, required=True)
+        parser.add_argument('owner', type=str, required=False)
+        parser.add_argument('uri', type=str, required=False)
+        parser.add_argument('parent_id', type=int, required=False)
+        parser.add_argument('target', type=float, required=False)
+        parser.add_argument('max_count', type=int, required=False)
+        
+        args = parser.parse_args()
+        
+        parent = Item.select().where(Item.id == args.parent_id)
+
+        i = Item.create(
+            name=args.name,
+            owner=args.owner,
+            uri=args.uri,
+            parent=parent,
+            target=args.target,
+            max_count=args.max_count
+        )
+        
+        return redirect('/api/items/%i' % i.id)
+
 api.add_resource(ItemsResource, '/api/items')
         
 class SingleItemResource(Resource):
