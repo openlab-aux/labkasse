@@ -57,9 +57,9 @@ class SingleItemResource(Resource):
         return {
             'id': item.id,
             'name': item.name,
-            'owner': i.owner,
-            'used_by': i.used_by,
-            'location': i.location,
+            'owner': item.owner,
+            'used_by': item.used_by,
+            'location': item.location,
             'uri': item.uri,
             'max_count': item.max_count,
             'target': item.target,
