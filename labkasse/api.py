@@ -81,6 +81,48 @@ class SingleItemResource(Resource):
         item = Item.select().where(Item.id == item_id).get()
         return SingleItemResource._item_to_json(item)
     
+    def put(self, item_id):
+        parser = reqparse.RequestParser()
+        parser.add_argument('name', type=str, required=False)
+        parser.add_argument('owner', type=str, required=False)
+        parser.add_argument('used_by', type=str, required=False)
+        parser.add_argument('location', type=str, required=False)
+        parser.add_argument('uri', type=str, required=False)
+        parser.add_argument('parent_id', type=int, required=False)
+        parser.add_argument('target', type=float, required=False)
+        parser.add_argument('max_count', type=int, required=False)
+        
+        args = parser.parse_args()
+        
+        i = Item.select().where(Item.id == item_id).get()
+        
+        if args.name is not None:
+            i.name = args.name
+        if args.owner is not None:
+            i.owner = args.owner
+        if args.used_by is not None:
+            i.used_by = args.used_by
+        if args.location is not None:
+            i.location = args.location
+        if args.uri is not None:
+            i.uri = args.uri
+        if args.parent_id is not None:
+            try:
+                parent = Item.select().where(Item.id == args.parent_id)
+            except DoesNotExist:
+                return {
+                    "message": "Parent Item does not exist"
+                }
+            i.parent = parent
+        if args.target is not None:
+            i.target = args.target
+        if args.max_count is not None:
+            i.max_count = args.max_count
+            
+        i.save()
+
+        return SingleItemResource._item_to_json(i), 201
+
 api.add_resource(SingleItemResource, '/api/items/<int:item_id>')
 
 class DonationResource(Resource):
