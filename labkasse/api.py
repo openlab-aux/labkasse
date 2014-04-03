@@ -47,7 +47,7 @@ class ItemsResource(Resource):
             max_count=args.max_count
         )
         
-        return redirect('/api/items/%i' % i.id)
+        return SingleItemResource._item_to_json(i), 201
 
 api.add_resource(ItemsResource, '/api/items')
         
@@ -91,7 +91,7 @@ class DonationResource(Resource):
         d = Donation.create(item=item,
                             value=args.value,
                             date = datetime.now())
-        return redirect('/api/donations/%i' % d.id)
+        return SingleDonationResource().get(d.id), 201
         
 api.add_resource(DonationResource, '/api/donations')
 
