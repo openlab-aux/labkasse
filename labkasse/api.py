@@ -36,7 +36,15 @@ class ItemsResource(Resource):
         
         args = parser.parse_args()
         
-        parent = Item.select().where(Item.id == args.parent_id)
+        if args.parent_id is not None:
+            try:
+                parent = Item.select().where(Item.id == args.parent_id).get()
+            except DoesNotExist:
+                return {
+                    "message": "Parent item does not exist"
+                }
+        else:
+            parent = None
 
         i = Item.create(
             name=args.name,
