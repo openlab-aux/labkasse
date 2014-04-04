@@ -1,6 +1,2 @@
 SECRET_KEY = 'lel'
-
-DATABASE = {
-    'name': 'labkasse.db',
-    'engine': 'peewee.SqliteDatabase'
-}
+SQLALCHEMY_DATABASE_URI = 'sqlite:///../labkasse.db'

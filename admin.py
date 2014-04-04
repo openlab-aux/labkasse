@@ -13,9 +13,8 @@ if __name__ == "__main__":
         from labkasse import app
         app.run(debug=True)
     elif args.command == 'initdb':
-        from labkasse.models import *
-        Item.create_table()
-        Donation.create_table()
+        from labkasse import db
+        db.create_all()
     else:
         print("[i] command not found, exitting")
         sys.exit(-1)

@@ -2,16 +2,27 @@ from datetime import datetime
 
 from flask.ext.restful import Resource, reqparse
 from flask import redirect
-from peewee import DoesNotExist
+from sqlalchemy.orm.exc import NoResultFound
 
-from labkasse import api
+from labkasse import api, db
 from labkasse.models import Item, Donation
+
 
 class ItemsResource(Resource):
     def get(self):
-        items = []
-        for i in Item.select():
-            items.append({
+        parser = reqparse.RequestParser()
+        parser.add_argument('search', type=str, required=False)
+        args = parser.parse_args()
+        
+        if args.search is not None:
+            items = Item.query.filter(Item.name.contains(args.search)).all()
+        else:
+            items = Item.query.all()
+            
+            
+        res = []
+        for i in items:
+            res.append({
                 'id': i.id,
                 'name': i.name,
                 'owner': i.owner,
@@ -23,7 +34,8 @@ class ItemsResource(Resource):
                 'max_count': i.max_count,
                 'donation_sum': i.donation_sum
             })
-        return items
+
+        return res
         
     def post(self):
         parser = reqparse.RequestParser()
@@ -38,22 +50,24 @@ class ItemsResource(Resource):
         
         if args.parent_id is not None:
             try:
-                parent = Item.select().where(Item.id == args.parent_id).get()
-            except DoesNotExist:
+                parent = Item.query.filter(Item.id == args.parent_id).one()
+            except NoResultFound:
                 return {
                     "message": "Parent item does not exist"
                 }
         else:
             parent = None
 
-        i = Item.create(
-            name=args.name,
-            owner=args.owner,
-            uri=args.uri,
-            parent=parent,
-            target=args.target,
-            max_count=args.max_count
-        )
+        i = Item()
+        i.name = args.name
+        i.owner = args.owner
+        i.uri = args.uri
+        i.parent = parent
+        i.target = args.target
+        i.max_count = args.max_count
+        
+        db.session.add(i)
+        db.session.commit()
         
         return SingleItemResource._item_to_json(i), 201
 
@@ -78,7 +92,12 @@ class SingleItemResource(Resource):
         }
 
     def get(self, item_id):
-        item = Item.select().where(Item.id == item_id).get()
+        try:
+            item = Item.query.filter(Item.id == item_id).one()
+        except NoResultFound:
+            return {
+                "message": "Item not found"
+            }, 404
         return SingleItemResource._item_to_json(item)
     
     def put(self, item_id):
@@ -94,7 +113,12 @@ class SingleItemResource(Resource):
         
         args = parser.parse_args()
         
-        i = Item.select().where(Item.id == item_id).get()
+        try:
+            i = Item.query.filter(Item.id == item_id).one()
+        except NoResultFound:
+            return {
+                "message": "Item not found",
+            }, 400
         
         if args.name is not None:
             i.name = args.name
@@ -119,7 +143,7 @@ class SingleItemResource(Resource):
         if args.max_count is not None:
             i.max_count = args.max_count
             
-        i.save()
+        db.session.commit()
 
         return SingleItemResource._item_to_json(i), 201
 
@@ -133,21 +157,32 @@ class DonationResource(Resource):
         args = parser.parse_args()
         
         try:
-            item = Item.select().where(Item.id == args.item_id).get()
-        except DoesNotExist:
+            item = Item.query.filter(Item.id == args.item_id).one()
+        except NoResultFound:
             return {
-                'message': "item does not not exist."
+                'message': "Item does not not exist."
             }
-        d = Donation.create(item=item,
-                            value=args.value,
-                            date = datetime.now())
+        d = Donation()
+
+        d.item=item
+        d.value=args.value
+        d.date = datetime.now()
+        
+        db.session.add(d)
+        db.session.commit()
+
         return SingleDonationResource().get(d.id), 201
         
 api.add_resource(DonationResource, '/api/donations')
 
 class SingleDonationResource(Resource):
     def get(self, donation_id):
-        donation = Donation.select().where(Donation.id == donation_id).get()
+        try:
+            donation = Donation.query.filter(Donation.id == donation_id).one()
+        except NoResultFound:
+            return {
+                'message': "Donation not found"
+            }, 404
         return {
             'id': donation.id,
             'value': donation.value,

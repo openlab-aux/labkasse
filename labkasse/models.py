@@ -2,26 +2,28 @@ from datetime import datetime
 
 from labkasse import app, db
 
-from peewee import TextField, IntegerField, FloatField, BooleanField, \
-    ForeignKeyField, DateTimeField
-
 class Item(db.Model):
-    name = TextField()
-    max_count = IntegerField(null=True)
-    target = FloatField(null=True)
-    uri = TextField(null=True)
-    owner = TextField(null=True)
-    used_by = TextField(null=True)
-    location = TextField(null=True)
-
-    parent = ForeignKeyField('self', related_name='sub_items', null=True)
+    __tablename__ = 'item'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    max_count = db.Column(db.Integer)
+    target = db.Column(db.Float)
+    uri = db.Column(db.String)
+    owner = db.Column(db.String)
+    used_by = db.Column(db.String)
+    location = db.Column(db.String)
     
-    def __unicode__(self):
-        return self.name
+    parent_id = db.Column(db.Integer, db.ForeignKey('item.id'))
+    parent = db.relationship("Item", remote_side='Item.id')
 
+    donations = db.relationship('Donation', backref='item')
+    
+    def __repr__(self):
+        return self.name
+    
     @property
     def sub_items(self):
-        return list(Item.select().where(Item.parent == self))
+        return Item.query.filter(Item.parent_id == self.id).all()
     
     @property
     def donation_sum(self):
@@ -35,6 +37,10 @@ class Item(db.Model):
             
 
 class Donation(db.Model):
-    value = FloatField()
-    date = DateTimeField(default=datetime.now)
-    item = ForeignKeyField(Item, related_name='donations')
+    __tablename__ = 'donation'
+
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.Float)
+    date = db.Column(db.DateTime)
+
+    item_id = db.Column(db.Integer, db.ForeignKey('item.id'))
