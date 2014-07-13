@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+    <title>Cover Template for Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="/static/cover.css" rel="stylesheet">
+
+  </head>
+
+  <body>
+
+    <div class="site-wrapper">
+
+      <div class="site-wrapper-inner">
+
+        <div class="cover-container">
+
+          <div class="masthead clearfix">
+            <div class="inner">
+              <h3 class="masthead-brand">Cover</h3>
+              <ul class="nav masthead-nav">
+                <li class="active"><a href="#">Home</a></li>
+                <li><a href="#">Features</a></li>
+                <li><a href="#">Contact</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="inner cover">
+            <h1 class="cover-heading">Labkasse</h1>
+            <p class="lead">Hier kannst Du Spenden eintragen</p>
+            <p class="lead">
+	      <div id="search">
+		<input id="search_input" class="typeahead" type="text" placeholder="Suche" autocomplete="off"></input>
+	      </div>
+            </p>
+          </div>
+
+          <div class="mastfoot">
+            <div class="inner">
+              This is labkasse by waaaaargh
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+      
+
+      <div id="donation_form" class="modal fade">
+        <div class="modal-dialog">
+          <div class="modal-content">
+	    <div class="modal-header">
+	      Spenden für <span id="donation_form_item"></span> 
+	    </div>
+	    <div class="modal-body">
+	      <div>
+		<i class="glyphicon glyphicon-euro"></i>
+		<input type="text" placeholder="13.37" id="donation_form_amount"></input>
+	      </div>
+	    </div>
+	    <div class="modal-footer">
+	      <a id="donation_form_cancel" href="#" class="btn btn-danger">Abbrechen</a>
+	      <a id="donation_form_submit" href="#" class="btn btn-success">Eintragen</a>
+	    </div>
+	  </div>
+	</div>
+      </div>
+
+      <div id="thankyou_form" class="modal fade">
+        <div class="modal-dialog">
+          <div class="modal-content">
+	    <div class="modal-body">
+	      <div>
+		Danke für Deine Spende!
+	      </div>
+	    </div>
+	    <div class="modal-footer">
+	      <a id="thankyou_form_submit" href="#" class="btn btn-success">Kein Ding!</a>
+	    </div>
+	  </div>
+	</div>
+      </div>
+
+
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="/static/jq-money.js"></script>
+    <script src="/static/typeahead.bundle.js"></script>
+      
+    <script>
+      // Donation form
+      var donation_item_id = null;
+      var donation_amount = null;
+
+      $('#donation_form_submit').click(function() {
+        var donation_amount = parseFloat($('#donation_form_amount').val());
+        $.post(
+          '/api/donations',
+  	  { item_id: donation_item_id,
+	    value: donation_amount },
+	  function() {
+	    $('#donation_form').modal('hide');
+	    $('#thankyou_form').modal('show');
+	    $('#search_input').val('');
+	    $('#donation_form_amount').val(''); 
+	  }
+        );  
+      });
+
+      
+      $('#donation_form_cancel').click(function() {
+        $('#donation_form').modal('hide');
+        $('#search_input').val('');
+        $('#donation_form_amount').val(''); 
+      });
+
+      function show_donation_form(id) {
+        $.ajax({
+          url: '/api/items/'+id,
+          datatype: 'json',
+          success: function(item) {
+            donation_item_id = item.id;
+	    $('#donation_form_item').html(item.name);
+	    $('#donation_form').modal('show');
+         }
+        });
+      }
+      
+      // Thankyou form
+      $('#thankyou_form_submit').click(function() {
+        $('#thankyou_form').modal('hide');
+      });
+
+
+      // Typeahaead stuff. You don't even want to know.
+      function itemSearcher() {
+        return function(q, cb) {
+          var items = [];
+          $.ajax({
+            url: '/api/items?search='+q,
+            success: function(data) {
+              $.each(data, function(key, val) {
+                items.push(val);
+              })
+              cb(items);
+            },
+            datatype: 'json'
+          });
+        }
+      }
+
+      $('#search .typeahead').typeahead(null, {
+          name: 'items',
+          displayKey: 'name',
+          source: itemSearcher(),
+          templates: {
+            empty: 'Kein Ergebnis gefunden!',
+            suggestion: function(obj){
+              return [
+                '<a href="#" onClick="show_donation_form('+obj.id+')">'+obj.name+'</a>'
+              ].join("\n");
+            }
+          }
+      });
+    </script>
+
+  </body>
+</html>-
