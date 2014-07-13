@@ -87,5 +87,6 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
-
-#!! ERROR: flask is undefined. Use list command to see defined gitignore types !!#
+# sqlite databases
+*.db
+*.sqlite
