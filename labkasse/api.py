@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from flask.ext.restful import Resource, reqparse
-from flask import redirect
 from sqlalchemy.orm.exc import NoResultFound
 
 from labkasse import api, db
